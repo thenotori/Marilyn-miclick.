@@ -706,7 +706,7 @@
                 this.createFlowers();
             }
 
-                        createFlowers() {
+            createFlowers() {
                 const flowerPositions = [
                     { x: -8, z: -8 }, { x: 8, z: -8 }, { x: -8, z: 8 }, { x: 8, z: 8 },
                     { x: 0, z: -10 }, { x: -10, z: 0 }, { x: 10, z: 0 }, { x: 0, z: 10 },
@@ -936,8 +936,8 @@
                     this.joystick.y = deltaY * distance;
                     // Mover visualmente el joystick
                     const maxOffset = 30;
-                    joystickEl.style.left = `50% ${deltaX * maxOffset}px`;
-                    joystickEl.style.top = `50% ${deltaY * maxOffset}px`;
+                    joystickEl.style.left = `calc(50% + ${deltaX * maxOffset}px)`;
+                    joystickEl.style.top = `calc(50% + ${deltaY * maxOffset}px)`;
                 }, { passive: false });
                 mobileControlsEl.addEventListener('touchend', () => {
                     this.joystick.active = false;
@@ -976,7 +976,7 @@
             }
 
             updateMovement() {
-                const speed = 0.15;
+                const speed = 0.1; // Velocidad reducida
                 if (this.isMobile) {
                     // MÓVIL: Movimiento RELATIVO A LA CÁMARA
                     const moveX = this.joystick.x;
@@ -986,8 +986,8 @@
                         const cameraYaw = this.cameraAngle.y;
                         // CORREGIDO: Joystick arriba (moveZ negativo) = alejarse de cámara
                         // Joystick abajo (moveZ positivo) = acercarse a cámara
-                        const worldMoveX = Math.sin(cameraYaw) * moveZ + Math.cos(cameraYaw) * moveX * speed;
-                        const worldMoveZ = Math.cos(cameraYaw) * moveZ - Math.sin(cameraYaw) * moveX * speed;
+                        const worldMoveX = (Math.sin(cameraYaw) * moveZ + Math.cos(cameraYaw) * moveX) * speed * 2;
+                        const worldMoveZ = (Math.cos(cameraYaw) * moveZ - Math.sin(cameraYaw) * moveX) * speed * 2;
                         // Mover el gato
                         this.cat.position.x += worldMoveX;
                         this.cat.position.z += worldMoveZ;
