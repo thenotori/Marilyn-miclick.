@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>El Mundo de Coraline - Para MiClick</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+
+        body {
+            font-family: Georgia, serif;
+            background: #1a2a4a;
+            overflow: hidden;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        #introMessage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 42, 74, 0.98);
+            color: #c0cce0;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 18px;
+            line-height: 1.5;
+            max-width: 90%;
+            z-index: 300;
+            border: 4px solid #5577aa;
+            box-shadow: 0 0 30px rgba(85, 119, 170, 0.8);
+            backdrop-filter: blur(15px);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        #introMessage button {
+            margin-top: 20px;
+            padding: 15px 25px;
+            font-size: 16px;
+            background: rgba(85, 119, 170, 0.8);
+            color: #c0cce0;
+            border: 2px solid #5577aa;
+            border-radius: 10px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        #introMessage button:hover {
+            background: rgba(85, 119, 170, 1);
+            transform: scale(1.05);
+        }
+
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(26, 42, 74, 0.95);
+            color: #c0cce0;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.5;
+            max-width: 90%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+            border: 3px solid #5577aa;
+            box-shadow: 0 0 20px rgba(85, 119, 170, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 150;
+        }
+
+        #message.show {
+            opacity: 1;
+        }
+
+        #message.final {
+            opacity: 1 !important;
+            z-index: 250;
+        }
+
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #c0cce0;
+            font-size: 12px;
+            background: rgba(20, 30, 60, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            border: 2px solid #5577aa;
+            pointer-events: auto;
+        }
+
+        #mobileInfo {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #c0cce0;
+            font-size: 12px;
+            text-align: center;
+            background: rgba(20, 30, 60, 0.7);
+            padding: 8px 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            border: 1px solid #5577aa;
+            display: none;
+        }
+
+        #mobileControls {
+            position: absolute;
+            bottom: 80px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(85, 119, 170, 0.3);
+            border: 3px solid #5577aa;
+            border-radius: 50%;
+            display: none;
+            pointer-events: auto;
+            backdrop-filter: blur(10px);
+            touch-action: none;
+        }
+
+        #joystick {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(85, 119, 170, 0.9);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 3px solid #365588;
+            box-shadow: 0 0 10px rgba(85, 119, 170, 0.5);
+        }
+
+        #cameraControls {
+            position: absolute;
+            right: 20px;
+            bottom: 80px;
+            width: 150px;
+            height: 150px;
+            pointer-events: auto;
+            display: none;
+            touch-action: none;
+        }
+
+        #cameraArea {
+            width: 100%;
+            height: 100%;
+            background: rgba(85, 119, 170, 0.15);
+            border: 2px dashed rgba(85, 119, 170, 0.6);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #cameraArea::after {
+            content: "👁️";
+            font-size: 30px;
+            opacity: 0.5;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #c0cce0;
+            font-size: 20px;
+            text-align: center;
+            z-index: 200;
+        }
+
+        .button {
+            color: #ff6b6b;
+            font-size: 20px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        #messageToggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(20, 30, 60, 0.95);
+            border: 3px solid #5577aa;
+            border-radius: 12px;
+            padding: 10px 15px;
+            color: #c0cce0;
+            font-size: 14px;
+            cursor: pointer;
+            pointer-events: auto;
+            backdrop-filter: blur(5px);
+            z-index: 300;
+            transition: all 0.3s ease;
+        }
+
+        #messageToggle:hover {
+            background: rgba(30, 40, 70, 0.95);
+            transform: scale(1.05);
+        }
+
+        #messagePanel {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(20, 30, 60, 0.98);
+            border-left: 4px solid #5577aa;
+            padding: 20px;
+            overflow-y: auto;
+            transition: right 0.4s ease;
+            pointer-events: auto;
+            z-index: 250;
+            backdrop-filter: blur(10px);
+        }
+
+        #messagePanel.open {
+            right: 0;
+        }
+
+        #closePanel {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 107, 107, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 260;
+        }
+
+        #messagePanel h3 {
+            color: #c0cce0;
+            margin-bottom: 20px;
+            font-size: 20px;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(85, 119, 170, 0.5);
+        }
+
+        .message-item {
+            background: rgba(70, 90, 140, 0.4);
+            border: 2px solid #5577aa;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #c0cce0;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .message-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(85, 119, 170, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            #mobileControls {
+                display: block;
+            }
+            
+            #cameraControls {
+                display: block;
+            }
+            
+            #controls {
+                display: none;
+            }
+            
+            #introMessage {
+                padding: 20px;
+                font-size: 16px;
+            }
+            
+            #message {
+                font-size: 14px;
+                padding: 15px;
+            }
+            
+            #messageToggle {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #mobileControls {
+                bottom: 60px;
+                left: 20px;
+                width: 100px;
+                height: 100px;
+            }
+            
+            #cameraControls {
+                right: 15px;
+                bottom: 60px;
+                width: 120px;
+                height: 120px;
+            }
+            
+            #joystick {
+                width: 40px;
+                height: 40px;
+            }
+            
+            #mobileInfo {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="loading">
+            <div class="button">Tejiendo el mundo oscuro de Coraline...</div>
+        </div>
+        <div id="introMessage">
+            <h2 style="color: #ff6b6b; margin-bottom: 15px; font-size: 20px;">La Historia del Alma Atrapada</h2>
+            <p style="font-size: 16px; margin-bottom: 15px;">
+                La Beldam me atrapó en su mundo oscuro. Mi alma está encerrada en este jardín de arena y sombras...<br><br>
+                <strong>MiClick, mi amor...</strong> Solo tú puedes liberarme. Sigue los <span style="color: #660033; font-weight: bold;">objetos mágicos conectados por el hilo rojo</span>.<br><br>
+                Encuentra los 10 objetos y lee todos los mensajes. ¡Tu amor romperá las cadenas de La Beldam!
+            </p>
+            <button id="closeIntro">Empezar la búsqueda</button>
+        </div>
+        
+        <div id="ui">
+            <div id="controls">
+                <strong>Controles</strong><br>
+                WASD - Moverte<br>
+                Mouse - Girar cámara<br>
+                Sigue el hilo rojo para encontrar los mensajes
+            </div>
+            
+            <div id="mobileInfo">
+                Joystick: Mover | área derecha: Girar cámara
+            </div>
+            
+            <div id="mobileControls">
+                <div id="joystick"></div>
+            </div>
+            
+            <div id="cameraControls">
+                <div id="cameraArea"></div>
+            </div>
+            
+            <div id="message"></div>
+            
+            <button id="messageToggle">Ver mensajes</button>
+            
+            <div id="messagePanel">
+                <button id="closePanel">×</button>
+                <h3>Mensajes encontrados</h3>
+                <div id="messageList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/three@0.150.0/build/three.min.js"></script>
+    <script>
+        class CoralineGame {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.cat = null;
+                this.magicObjects = [];
+                this.guides = [];
+                this.messages = [
+                    "Las flores de tela aquí nunca se marchitan, como mi amor por ti 🥰",
+                    "Incluso en el mundo paralelo más extraño, te encontraría entre multitudes 💙",
+                    "Las contraventanas cerradas no pueden ocultar la luz que irradias ✨",
+                    "Incluso La Beldam con todas sus trampas no puede coser lo que siento por ti ❤️",
+                    "Este jardín de arena es mi mundo, y tú eres la flor que lo ilumina 🌸",
+                    "Cuando encuentres todos los mensajes, sabrás que mi alma siempre ha sido tuya para siempre 💕",
+                    "Tú eres la llave que siempre me lleva a casa 🏠",
+                    "Contigo, el jardín florece en mil colores, incluso en el día más gris 🌈",
+                    "Sin ti, solo soy un pozo lleno de neblina. Eres mi luz 💡",
+                    "Cuando me abrazas, todos los grises del mundo se vuelven un hermoso azul Coraline 💙"
+                ];
+
+                this.collectedObjects = new Set();
+                this.foundMessages = [];
+                this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                this.gameWon = false;
+                this.messageTimeout = null;
+                this.keys = {};
+                this.joystick = { x: 0, y: 0, active: false };
+                this.cameraTouch = { active: false, lastX: 0, lastY: 0 };
+                this.cameraAngle = { x: 0.3, y: Math.PI };
+                this.catRotation = Math.PI;
+
+                this.setupIntro();
+            }
+
+            setupIntro() {
+                document.getElementById('closeIntro').addEventListener('click', () => {
+                    // REPRODUCIR MÚSICA AQUÍ
+                    const audio = new Audio('Coraline Soundtrack End Credits.mp3');
+                    audio.loop = true;
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log('Audio play failed:', e));
+                    
+                    document.getElementById('introMessage').style.display = 'none';
+                    document.getElementById('loading').style.display = 'block';
+                    setTimeout(() => this.init(), 500);
+                });
+            }
+
+            init() {
+                this.scene = new THREE.Scene();
+                this.scene.fog = new THREE.Fog(0x1a2a4a, 8, 80);
+
+                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.camera.position.set(0, 5, 10);
+
+                this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.setClearColor(0x1a2a4a, 1);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+                document.getElementById('gameContainer').appendChild(this.renderer.domElement);
+
+                this.setupLighting();
+                this.createWorld();
+                this.createCat();
+                this.createMagicObjects();
+                this.setupControls();
+                this.setupMessagePanel();
+
+                document.getElementById('loading').style.display = 'none';
+                this.animate();
+            }
+
+            setupLighting() {
+                const ambientLight = new THREE.AmbientLight(0x4a5a8a, 0.5);
+                this.scene.add(ambientLight);
+
+                const lampLight = new THREE.DirectionalLight(0x6699cc, 0.5);
+                lampLight.position.set(10, 20, 10);
+                lampLight.castShadow = true;
+                lampLight.shadow.mapSize.width = 512;
+                lampLight.shadow.mapSize.height = 512;
+                this.scene.add(lampLight);
+
+                this.createStreetLamps();
+            }
+
+            createStreetLamps() {
+                const lampPositions = [
+                    { x: -15, z: -15 },
+                    { x: 15, z: -15 },
+                    { x: -15, z: 15 },
+                    { x: 15, z: 15 }
+                ];
+
+                lampPositions.forEach(pos => {
+                    const poleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 5);
+                    const poleMaterial = new THREE.MeshLambertMaterial({ color: 0x3c4a66 });
+                    const pole = new THREE.Mesh(poleGeometry, poleMaterial);
+                    pole.position.set(pos.x, 2.5, pos.z);
+                    pole.castShadow = true;
+                    this.scene.add(pole);
+
+                    const lampLight = new THREE.PointLight(0x6699cc, 0.9, 15);
+                    lampLight.position.set(pos.x, 5, pos.z);
+                    this.scene.add(lampLight);
+
+                    const lampGeometry = new THREE.SphereGeometry(0.3);
+                    const lampMaterial = new THREE.MeshBasicMaterial({ 
+                        color: 0x6699cc, 
+                        emissive: 0x6699cc, 
+                        emissiveIntensity: 0.4 
+                    });
+                    const lamp = new THREE.Mesh(lampGeometry, lampMaterial);
+                    lamp.position.set(pos.x, 5, pos.z);
+                    this.scene.add(lamp);
+                });
+            }
+
+            createWorld() {
+                const floorGeometry = new THREE.PlaneGeometry(100, 100);
+                const floorMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x2a3a5a, 
+                    transparent: true, 
+                    opacity: 0.9 
+                });
+                const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+                floor.rotation.x = -Math.PI / 2;
+                floor.receiveShadow = true;
+                this.scene.add(floor);
+
+                this.createHouse();
+                this.createGarden();
+            }
+
+            createHouse() {
+                const houseGroup = new THREE.Group();
+
+                // Pared frontal
+                const frontWallGeometry = new THREE.BoxGeometry(12, 8, 0.5);
+                const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x4a5a7a });
+                const frontWall = new THREE.Mesh(frontWallGeometry, wallMaterial);
+                frontWall.position.set(0, 4, -6);
+                frontWall.castShadow = true;
+                houseGroup.add(frontWall);
+
+                // Paredes laterales
+                const sideWallGeometry = new THREE.BoxGeometry(0.5, 8, 12);
+                const leftWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
+                leftWall.position.set(-6.25, 4, 0);
+                leftWall.castShadow = true;
+                houseGroup.add(leftWall);
+
+                const rightWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
+                rightWall.position.set(6.25, 4, 0);
+                rightWall.castShadow = true;
+                houseGroup.add(rightWall);
+
+                // Pared trasera
+                const backWallGeometry = new THREE.BoxGeometry(11, 8, 0.5);
+                const backWall = new THREE.Mesh(backWallGeometry, wallMaterial);
+                backWall.position.set(0, 4, 6);
+                backWall.castShadow = true;
+                houseGroup.add(backWall);
+
+                // Techo principal
+                const roofGeometry = new THREE.ConeGeometry(10, 4, 4);
+                const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x2a3a5a });
+                const mainRoof = new THREE.Mesh(roofGeometry, roofMaterial);
+                mainRoof.position.set(0, 10, 0);
+                mainRoof.rotation.y = Math.PI / 4;
+                mainRoof.castShadow = true;
+                houseGroup.add(mainRoof);
+
+                // Techos laterales
+                const sideRoofGeometry = new THREE.ConeGeometry(7, 3, 4);
+                const leftRoof = new THREE.Mesh(sideRoofGeometry, roofMaterial);
+                leftRoof.position.set(-8, 9, 0);
+                leftRoof.rotation.y = -Math.PI / 4;
+                leftRoof.scale.set(0.8, 1, 0.8);
+                leftRoof.castShadow = true;
+                houseGroup.add(leftRoof);
+
+                const rightRoof = new THREE.Mesh(sideRoofGeometry, roofMaterial);
+                rightRoof.position.set(8, 9, 0);
+                rightRoof.rotation.y = Math.PI / 4;
+                rightRoof.scale.set(0.8, 1, 0.8);
+                rightRoof.castShadow = true;
+                houseGroup.add(rightRoof);
+
+                this.createWindows(houseGroup);
+                this.createDoor(houseGroup);
+                this.scene.add(houseGroup);
+            }
+
+            createWindows(houseGroup) {
+                const windowGeometry = new THREE.BoxGeometry(2, 2, 0.1);
+                const windowMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x87cefa, 
+                    transparent: true, 
+                    opacity: 0.7 
+                });
+
+                const window1 = new THREE.Mesh(windowGeometry, windowMaterial);
+                window1.position.set(-3, 5, -5.8);
+                houseGroup.add(window1);
+
+                const window2 = new THREE.Mesh(windowGeometry, windowMaterial);
+                window2.position.set(3, 5, -5.8);
+                houseGroup.add(window2);
+
+                // Ventanas laterales
+                const sideWindow1 = new THREE.Mesh(windowGeometry, windowMaterial);
+                sideWindow1.position.set(-5.9, 5, -2);
+                houseGroup.add(sideWindow1);
+
+                const sideWindow2 = new THREE.Mesh(windowGeometry, windowMaterial);
+                sideWindow2.position.set(-5.9, 2, -2);
+                houseGroup.add(sideWindow2);
+
+                const sideWindow3 = new THREE.Mesh(windowGeometry, windowMaterial);
+                sideWindow3.position.set(5.9, 5, -2);
+                houseGroup.add(sideWindow3);
+
+                const sideWindow4 = new THREE.Mesh(windowGeometry, windowMaterial);
+                sideWindow4.position.set(5.9, 2, -2);
+                houseGroup.add(sideWindow4);
+
+                const backWindow = new THREE.Mesh(windowGeometry, windowMaterial);
+                backWindow.position.set(0, 5, 5.8);
+                houseGroup.add(backWindow);
+
+                // Postigos
+                const shutterMaterial = new THREE.MeshLambertMaterial({ color: 0x2a3a5a });
+                const shutter1 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2, 0.1), shutterMaterial);
+                shutter1.position.set(-2.5, 5, -5.7);
+                houseGroup.add(shutter1);
+
+                const shutter2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2, 0.1), shutterMaterial);
+                shutter2.position.set(2.5, 5, -5.7);
+                houseGroup.add(shutter2);
+            }
+
+            createDoor(houseGroup) {
+                const doorGeometry = new THREE.BoxGeometry(1.5, 3, 0.1);
+                const doorMaterial = new THREE.MeshLambertMaterial({ color: 0x2a3a5a });
+                const door = new THREE.Mesh(doorGeometry, doorMaterial);
+                door.position.set(0, 1.5, -5.8);
+                door.castShadow = true;
+                houseGroup.add(door);
+
+                // Manija
+                const handleGeometry = new THREE.SphereGeometry(0.1);
+                const handleMaterial = new THREE.MeshBasicMaterial({ color: 0x6699cc });
+                const handle = new THREE.Mesh(handleGeometry, handleMaterial);
+                handle.position.set(0.5, 1.5, -5.7);
+                houseGroup.add(handle);
+            }
+
+            createGarden() {
+                const grassGeometry = new THREE.PlaneGeometry(40, 40);
+                const grassMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x1a3a2a, 
+                    transparent: true, 
+                    opacity: 0.8 
+                });
+                const grass = new THREE.Mesh(grassGeometry, grassMaterial);
+                grass.rotation.x = -Math.PI / 2;
+                grass.position.set(-20, 0.01, -20);
+                grass.receiveShadow = true;
+                this.scene.add(grass);
+
+                const sandGeometry = new THREE.PlaneGeometry(30, 30);
+                const sandMaterial = new THREE.MeshLambertMaterial({ color: 0x5a6a8a });
+                const sand = new THREE.Mesh(sandGeometry, sandMaterial);
+                sand.rotation.x = -Math.PI / 2;
+                sand.position.y = 0.02;
+                sand.receiveShadow = true;
+                this.scene.add(sand);
+
+                this.createFlowers();
+            }
+
+                        createFlowers() {
+                const flowerPositions = [
+                    { x: -8, z: -8 }, { x: 8, z: -8 }, { x: -8, z: 8 }, { x: 8, z: 8 },
+                    { x: 0, z: -10 }, { x: -10, z: 0 }, { x: 10, z: 0 }, { x: 0, z: 10 },
+                    { x: -15, z: -15 }, { x: 15, z: 15 }
+                ];
+
+                flowerPositions.forEach(pos => {
+                    const stemGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.5);
+                    const stemMaterial = new THREE.MeshLambertMaterial({ color: 0x1a3a2a });
+                    const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+                    stem.position.set(pos.x, 0.25, pos.z);
+                    this.scene.add(stem);
+
+                    const flowerGeometry = new THREE.SphereGeometry(0.3);
+                    const flowerMaterial = new THREE.MeshLambertMaterial({ 
+                        color: 0xba55d3, 
+                        emissive: 0xba55d3, 
+                        emissiveIntensity: 0.2 
+                    });
+                    const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+                    flower.position.set(pos.x, 0.6, pos.z);
+                    this.scene.add(flower);
+                });
+            }
+
+            createCat() {
+                this.cat = new THREE.Group();
+
+                const bodyGeometry = new THREE.SphereGeometry(0.8, 8, 6);
+                const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a2a });
+                const catBody = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                catBody.scale.set(1, 0.8, 1.5);
+                catBody.castShadow = true;
+                this.cat.add(catBody);
+
+                const headGeometry = new THREE.SphereGeometry(0.6, 8, 6);
+                const head = new THREE.Mesh(headGeometry, bodyMaterial);
+                head.position.set(0, 0.3, 1.2);
+                head.castShadow = true;
+                this.cat.add(head);
+
+                const eyeGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.1);
+                const eyeMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0x00ff88, 
+                    emissive: 0x00ff88, 
+                    emissiveIntensity: 0.7 
+                });
+
+                const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+                leftEye.position.set(-0.2, 0.4, 1.7);
+                leftEye.rotation.x = Math.PI / 2;
+                this.cat.add(leftEye);
+
+                const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+                rightEye.position.set(0.2, 0.4, 1.7);
+                rightEye.rotation.x = Math.PI / 2;
+                this.cat.add(rightEye);
+
+                const earGeometry = new THREE.ConeGeometry(0.2, 0.4, 4);
+                const leftEar = new THREE.Mesh(earGeometry, bodyMaterial);
+                leftEar.position.set(-0.3, 0.8, 1.2);
+                leftEar.rotation.x = -Math.PI / 6;
+                this.cat.add(leftEar);
+
+                const rightEar = new THREE.Mesh(earGeometry, bodyMaterial);
+                rightEar.position.set(0.3, 0.8, 1.2);
+                rightEar.rotation.x = -Math.PI / 6;
+                this.cat.add(rightEar);
+
+                this.createTail();
+                this.createLegs();
+
+                this.cat.position.set(0, 0.8, 8);
+                this.cat.rotation.y = this.catRotation;
+                this.scene.add(this.cat);
+            }
+
+            createTail() {
+                const tailSegments = [];
+                const tailMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a2a });
+
+                for (let i = 0; i < 5; i++) {
+                    const segmentGeometry = new THREE.SphereGeometry(0.15 - i * 0.02, 6, 4);
+                    const segment = new THREE.Mesh(segmentGeometry, tailMaterial);
+                    segment.position.set(0, 0.5 + i * 0.3, -1.2 - i * 0.2);
+                    segment.castShadow = true;
+                    tailSegments.push(segment);
+                    this.cat.add(segment);
+                }
+            }
+
+            createLegs() {
+                const legGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.6);
+                const legMaterial = new THREE.MeshLambertMaterial({ color: 0x1a1a2a });
+                const legPositions = [
+                    { x: -0.4, z: 0.8 }, { x: 0.4, z: 0.8 },
+                    { x: -0.4, z: -0.8 }, { x: 0.4, z: -0.8 }
+                ];
+
+                legPositions.forEach(pos => {
+                    const leg = new THREE.Mesh(legGeometry, legMaterial);
+                    leg.position.set(pos.x, -0.3, pos.z);
+                    leg.castShadow = true;
+                    this.cat.add(leg);
+                });
+            }
+
+            createMagicObjects() {
+                const objectTypes = [
+                    { type: 'button', geometry: new THREE.CylinderGeometry(0.3, 0.3, 0.1), color: 0x660033 },
+                    { type: 'key', geometry: new THREE.BoxGeometry(0.8, 0.2, 0.1), color: 0x8a9bb8 },
+                    { type: 'flower', geometry: new THREE.SphereGeometry(0.3), color: 0x9932cc },
+                    { type: 'egg', geometry: new THREE.SphereGeometry(0.4), color: 0x778899 },
+                    { type: 'eye', geometry: new THREE.SphereGeometry(0.35), color: 0x191970 },
+                    { type: 'thread', geometry: new THREE.TorusGeometry(0.3, 0.05), color: 0x660033 },
+                    { type: 'patch', geometry: new THREE.BoxGeometry(0.6, 0.6, 0.1), color: 0x3c4a66 },
+                    { type: 'spool', geometry: new THREE.CylinderGeometry(0.2, 0.2, 0.6), color: 0x708090 },
+                    { type: 'bead', geometry: new THREE.SphereGeometry(0.25), color: 0x483d8b },
+                    { type: 'heart', geometry: new THREE.SphereGeometry(0.3), color: 0x9932cc }
+                ];
+
+                const positions = [
+                    { x: -7, z: -7 }, { x: 7, z: -7 }, { x: -7, z: 7 }, { x: 7, z: 7 },
+                    { x: 0, z: -12 }, { x: -12, z: 0 }, { x: 12, z: 0 }, { x: 0, z: 12 },
+                    { x: -5, z: -12 }, { x: 5, z: 12 }
+                ];
+
+                positions.forEach((pos, index) => {
+                    const objType = objectTypes[index % objectTypes.length];
+                    const material = new THREE.MeshLambertMaterial({ 
+                        color: objType.color, 
+                        emissive: objType.color, 
+                        emissiveIntensity: 0.25 
+                    });
+                    const mesh = new THREE.Mesh(objType.geometry, material);
+                    mesh.position.set(pos.x, 1.5, pos.z);
+                    mesh.castShadow = true;
+                    mesh.userData = { type: 'magicObject', index: index, collected: false };
+                    this.magicObjects.push(mesh);
+                    this.scene.add(mesh);
+                    this.createGuideThread(pos, index);
+                });
+            }
+
+            createGuideThread(position, index) {
+                const threadGeometry = new THREE.BufferGeometry();
+                const points = [];
+                for (let i = 0; i < 20; i++) {
+                    const t = i / 20;
+                    const x = position.x * t;
+                    const y = 0.5 + Math.sin(Math.PI * 4) * 0.2;
+                    const z = position.z * t;
+                    points.push(new THREE.Vector3(x, y, z));
+                }
+                threadGeometry.setFromPoints(points);
+
+                const threadMaterial = new THREE.LineBasicMaterial({ 
+                    color: 0x660033, 
+                    transparent: true, 
+                    opacity: 0.5 
+                });
+                const thread = new THREE.Line(threadGeometry, threadMaterial);
+                thread.userData = { targetIndex: index, visible: false };
+                this.guides.push(thread);
+                this.scene.add(thread);
+            }
+
+            setupControls() {
+                document.addEventListener('keydown', e => {
+                    if (!e.repeat) this.keys[e.key.toLowerCase()] = true;
+                });
+                document.addEventListener('keyup', e => {
+                    this.keys[e.key.toLowerCase()] = false;
+                });
+
+                let mouseDown = false;
+                let lastMouseX = 0;
+                let lastMouseY = 0;
+
+                this.renderer.domElement.addEventListener('mousedown', e => {
+                    mouseDown = true;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                });
+                this.renderer.domElement.addEventListener('mouseup', () => {
+                    mouseDown = false;
+                });
+                this.renderer.domElement.addEventListener('mousemove', e => {
+                    if (mouseDown) {
+                        const deltaX = e.clientX - lastMouseX;
+                        const deltaY = e.clientY - lastMouseY;
+                        this.cameraAngle.y -= deltaX * 0.01;
+                        this.cameraAngle.x -= deltaY * 0.01;
+                        this.cameraAngle.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 3, this.cameraAngle.x));
+                        lastMouseX = e.clientX;
+                        lastMouseY = e.clientY;
+                    }
+                });
+
+                if (this.isMobile) {
+                    this.setupMobileControls();
+                }
+            }
+
+            setupMobileControls() {
+                const joystickEl = document.getElementById('joystick');
+                const mobileControlsEl = document.getElementById('mobileControls');
+                const cameraAreaEl = document.getElementById('cameraArea');
+
+                // JOYSTICK - Guarda la dirección del input
+                mobileControlsEl.addEventListener('touchstart', e => {
+                    e.preventDefault();
+                    this.joystick.active = true;
+                }, { passive: false });
+                mobileControlsEl.addEventListener('touchmove', e => {
+                    e.preventDefault();
+                    const rect = mobileControlsEl.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    const clientX = e.touches[0].clientX;
+                    const clientY = e.touches[0].clientY;
+                    const deltaX = (clientX - centerX) / (rect.width / 2);
+                    const deltaY = (clientY - centerY) / (rect.height / 2);
+                    const distance = Math.min(1, Math.sqrt(deltaX * deltaX + deltaY * deltaY));
+                    // Guardar input normalizado
+                    this.joystick.x = deltaX * distance;
+                    this.joystick.y = deltaY * distance;
+                    // Mover visualmente el joystick
+                    const maxOffset = 30;
+                    joystickEl.style.left = `50% ${deltaX * maxOffset}px`;
+                    joystickEl.style.top = `50% ${deltaY * maxOffset}px`;
+                }, { passive: false });
+                mobileControlsEl.addEventListener('touchend', () => {
+                    this.joystick.active = false;
+                    this.joystick.x = 0;
+                    this.joystick.y = 0;
+                    joystickEl.style.left = '50%';
+                    joystickEl.style.top = '50%';
+                });
+
+                // CÁMARA - Control independiente
+                cameraAreaEl.addEventListener('touchstart', e => {
+                    e.preventDefault();
+                    this.cameraTouch.active = true;
+                    this.cameraTouch.lastX = e.touches[0].clientX;
+                    this.cameraTouch.lastY = e.touches[0].clientY;
+                }, { passive: false });
+                cameraAreaEl.addEventListener('touchmove', e => {
+                    e.preventDefault();
+                    if (this.cameraTouch.active) {
+                        const clientX = e.touches[0].clientX;
+                        const clientY = e.touches[0].clientY;
+                        const deltaX = clientX - this.cameraTouch.lastX;
+                        const deltaY = clientY - this.cameraTouch.lastY;
+                        // Rotar cámara
+                        this.cameraAngle.y -= deltaX * 0.008;
+                        this.cameraAngle.x -= deltaY * 0.008;
+                        // Limitar ángulo vertical
+                        this.cameraAngle.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 3, this.cameraAngle.x));
+                        this.cameraTouch.lastX = clientX;
+                        this.cameraTouch.lastY = clientY;
+                    }
+                }, { passive: false });
+                cameraAreaEl.addEventListener('touchend', () => {
+                    this.cameraTouch.active = false;
+                });
+            }
+
+            updateMovement() {
+                const speed = 0.15;
+                if (this.isMobile) {
+                    // MÓVIL: Movimiento RELATIVO A LA CÁMARA
+                    const moveX = this.joystick.x;
+                    const moveZ = this.joystick.y;
+                    if (Math.abs(moveX) > 0.05 || Math.abs(moveZ) > 0.05) {
+                        // Calcular dirección basada en la cámara
+                        const cameraYaw = this.cameraAngle.y;
+                        // CORREGIDO: Joystick arriba (moveZ negativo) = alejarse de cámara
+                        // Joystick abajo (moveZ positivo) = acercarse a cámara
+                        const worldMoveX = Math.sin(cameraYaw) * moveZ + Math.cos(cameraYaw) * moveX * speed;
+                        const worldMoveZ = Math.cos(cameraYaw) * moveZ - Math.sin(cameraYaw) * moveX * speed;
+                        // Mover el gato
+                        this.cat.position.x += worldMoveX;
+                        this.cat.position.z += worldMoveZ;
+                        // Rotar el gato hacia la dirección de movimiento
+                        if (Math.abs(worldMoveX) > 0.001 || Math.abs(worldMoveZ) > 0.001) {
+                            const targetRotation = Math.atan2(worldMoveX, worldMoveZ);
+                            // Suavizar la rotación del gato
+                            let rotationDiff = targetRotation - this.catRotation;
+                            // Normalizar la diferencia a -PI, PI
+                            while (rotationDiff > Math.PI) rotationDiff -= Math.PI * 2;
+                            while (rotationDiff < -Math.PI) rotationDiff += Math.PI * 2;
+                            this.catRotation += rotationDiff * 0.15;
+                            this.cat.rotation.y = this.catRotation;
+                        }
+                    }
+                } else {
+                    // PC: Sistema WASD tradicional
+                    if (this.keys['w']) {
+                        this.cat.position.x += Math.sin(this.catRotation) * speed;
+                        this.cat.position.z += Math.cos(this.catRotation) * speed;
+                    }
+                    if (this.keys['s']) {
+                        this.cat.position.x -= Math.sin(this.catRotation) * speed;
+                        this.cat.position.z -= Math.cos(this.catRotation) * speed;
+                    }
+                    if (this.keys['a']) {
+                        this.catRotation += 0.05;
+                    }
+                    if (this.keys['d']) {
+                        this.catRotation -= 0.05;
+                    }
+                    this.cat.rotation.y = this.catRotation;
+                }
+
+                // Limitar posición del gato al área de juego
+                this.cat.position.x = Math.max(-25, Math.min(25, this.cat.position.x));
+                this.cat.position.z = Math.max(-25, Math.min(25, this.cat.position.z));
+            }
+
+            updateCamera() {
+                const radius = 8;
+                const cameraX = this.cat.position.x + Math.sin(this.cameraAngle.y) * Math.cos(this.cameraAngle.x) * radius;
+                const cameraY = this.cat.position.y + 5 + Math.sin(this.cameraAngle.x) * radius;
+                const cameraZ = this.cat.position.z + Math.cos(this.cameraAngle.y) * Math.cos(this.cameraAngle.x) * radius;
+                this.camera.position.set(cameraX, cameraY, cameraZ);
+                this.camera.lookAt(this.cat.position.x, this.cat.position.y + 1, this.cat.position.z);
+            }
+
+            updateGuides() {
+                this.guides.forEach((guide, index) => {
+                    if (!this.collectedObjects.has(index)) {
+                        const targetPos = this.magicObjects[index].position;
+                        const distance = this.cat.position.distanceTo(targetPos);
+                        if (distance < 8) {
+                            guide.material.opacity = Math.min(0.9, guide.material.opacity + 0.02);
+                            guide.userData.visible = true;
+                        } else {
+                            guide.material.opacity = Math.max(0.2, guide.material.opacity - 0.02);
+                        }
+                        const time = Date.now() * 0.001;
+                        guide.rotation.y = Math.sin(time + index) * 0.1;
+                    } else {
+                        guide.material.opacity = Math.max(0, guide.material.opacity - 0.05);
+                    }
+                });
+            }
+
+            checkCollisions() {
+                this.magicObjects.forEach((obj, index) => {
+                    if (!obj.userData.collected && !this.collectedObjects.has(index)) {
+                        const distance = this.cat.position.distanceTo(obj.position);
+                        if (distance < 1.5) {
+                            this.collectObject(obj, index);
+                        }
+                    }
+                });
+
+                if (this.collectedObjects.size === 10 && !this.gameWon) {
+                    this.gameWon = true;
+                    this.showFinalMessage();
+                }
+            }
+
+            collectObject(obj, index) {
+                obj.userData.collected = true;
+                this.collectedObjects.add(index);
+                this.foundMessages.push(this.messages[index]);
+                this.showTemporaryMessage(this.messages[index]);
+                this.addMessageToPanel(this.messages[index]);
+                this.fadeOutObject(obj);
+            }
+
+            showTemporaryMessage(text) {
+                const messageEl = document.getElementById('message');
+                messageEl.textContent = text;
+                messageEl.classList.add('show');
+                messageEl.classList.remove('final');
+                if (this.messageTimeout) clearTimeout(this.messageTimeout);
+                this.messageTimeout = setTimeout(() => {
+                    if (!this.gameWon) messageEl.classList.remove('show');
+                }, 5000);
+            }
+
+            showFinalMessage() {
+                const finalMessage = `¡LO LOGRASTE, MiClick! 🎉
+
+Encontraste todos los mensajes y liberaste mi alma de las garras de La Beldam. Mi alma estaba atrapada en este mundo oscuro, pero tu amor la ha liberado...
+
+Ahora mi alma es libre, pero pertenece a ti... para toda la eternidad. Te amo con todo mi ser. Eres mi llave, mi luz, mi hogar. 💕`;
+                const messageEl = document.getElementById('message');
+                messageEl.textContent = finalMessage;
+                messageEl.classList.add('show');
+                messageEl.classList.add('final');
+                this.addMessageToPanel(finalMessage);
+            }
+
+            fadeOutObject(obj) {
+                let opacity = 1;
+                const fadeInterval = setInterval(() => {
+                    opacity -= 0.05;
+                    obj.material.opacity = opacity;
+                    obj.material.transparent = true;
+                    if (opacity <= 0) {
+                        clearInterval(fadeInterval);
+                        this.scene.remove(obj);
+                    }
+                }, 50);
+            }
+
+            setupMessagePanel() {
+                const toggleBtn = document.getElementById('messageToggle');
+                const panel = document.getElementById('messagePanel');
+                const closeBtn = document.getElementById('closePanel');
+
+                toggleBtn.addEventListener('click', () => {
+                    panel.classList.toggle('open');
+                });
+                closeBtn.addEventListener('click', () => {
+                    panel.classList.remove('open');
+                });
+                panel.addEventListener('click', e => {
+                    if (e.target === panel) {
+                        panel.classList.remove('open');
+                    }
+                });
+            }
+
+            addMessageToPanel(message) {
+                const messageList = document.getElementById('messageList');
+                const messageItem = document.createElement('div');
+                messageItem.className = 'message-item';
+                messageItem.textContent = message;
+                messageList.appendChild(messageItem);
+                messageList.scrollTop = messageList.scrollHeight;
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.updateMovement();
+                this.updateCamera();
+                this.updateGuides();
+                this.checkCollisions();
+
+                this.magicObjects.forEach((obj, index) => {
+                    if (!obj.userData.collected) {
+                        const time = Date.now() * 0.001;
+                        obj.position.y = 1.5 + Math.sin(time + index) * 0.2;
+                        obj.rotation.y += 0.01;
+                    }
+                });
+
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            window.game = new CoralineGame();
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.game) {
+                window.game.camera.aspect = window.innerWidth / window.innerHeight;
+                window.game.camera.updateProjectionMatrix();
+                window.game.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+
+        // Prevenir gestos no deseados en móviles
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        document.addEventListener('gesturechange', e => e.preventDefault());
+        document.addEventListener('gestureend', e => e.preventDefault());
+    </script>
+</body>
+</html>
